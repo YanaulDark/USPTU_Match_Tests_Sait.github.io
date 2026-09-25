@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>LectureHub — Вход</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="center">
+  <div class="card">
+    <h1 class="logo">LectureHub</h1>
+    <p class="subtitle">Интерактивные лекции в реальном времени</p>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="login">Вход</button>
+      <button class="tab" data-tab="register">Регистрация</button>
+    </div>
+
+    <form id="login-form" class="form">
+      <input name="email" type="email" placeholder="Email" required>
+      <input name="password" type="password" placeholder="Пароль" required>
+      <button type="submit" class="btn primary">Войти</button>
+    </form>
+
+    <form id="register-form" class="form hidden">
+      <input name="name" placeholder="Имя" required>
+      <input name="email" type="email" placeholder="Email" required>
+      <input name="password" type="password" placeholder="Пароль" required>
+      <select name="role">
+        <option value="student">Студент</option>
+        <option value="teacher">Преподаватель</option>
+      </select>
+      <button type="submit" class="btn primary">Зарегистрироваться</button>
+    </form>
+
+    <p id="msg" class="msg"></p>
+  </div>
+
+<script>
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  document.getElementById('login-form').classList.toggle('hidden', t.dataset.tab !== 'login');
+  document.getElementById('register-form').classList.toggle('hidden', t.dataset.tab !== 'register');
+});
+
+async function post(url, body) {
+  const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+document.getElementById('login-form').onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  try {
+    const res = await post('/api/login', {email: f.get('email'), password: f.get('password')});
+    location.href = res.role === 'teacher' ? '/teacher' : '/student';
+  } catch (err) { document.getElementById('msg').textContent = 'Ошибка: ' + err.message; }
+};
+
+document.getElementById('register-form').onsubmit = async e => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  try {
+    const res = await post('/api/register', {
+      name: f.get('name'), email: f.get('email'),
+      password: f.get('password'), role: f.get('role')
+    });
+    location.href = res.role === 'teacher' ? '/teacher' : '/student';
+  } catch (err) { document.getElementById('msg').textContent = 'Ошибка: ' + err.message; }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Кабинет преподавателя</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">LectureHub</div>
+  <nav>
+    <a href="/teacher" class="active">Лекции</a>
+    <a href="/workshop">Мастерская</a>
+  </nav>
+  <div class="user" id="userName"></div>
+</header>
+
+<main class="layout">
+  <aside class="sidebar">
+    <h3>Мои лекции</h3>
+    <button class="btn primary full" id="newLecture">+ Новая лекция</button>
+    <ul id="lectureList" class="list"></ul>
+  </aside>
+
+  <section class="content">
+    <div class="toolbar">
+      <h2 id="lectureTitle">Выберите лекцию</h2>
+      <div class="tools">
+        <button class="btn" id="prevSlide">‹</button>
+        <span id="slideCounter">0 / 0</span>
+        <button class="btn" id="nextSlide">›</button>
+        <button class="btn accent" id="qrBtn">QR для студентов</button>
+      </div>
+    </div>
+
+    <div class="pdf-viewer">
+      <canvas id="pdfCanvas"></canvas>
+    </div>
+  </section>
+
+  <aside class="rightbar">
+    <h3>Вопросы на слайде</h3>
+    <div id="questionList" class="list"></div>
+  </aside>
+</main>
+
+<div id="qrModal" class="modal hidden">
+  <div class="modal-box">
+    <h3>QR для подключения</h3>
+    <div id="qrHolder"></div>
+    <p class="hint" id="qrLink"></p>
+    <button class="btn" onclick="document.getElementById('qrModal').classList.add('hidden')">Закрыть</button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/static/js/teacher.js"></script>
+</body>
+</html>

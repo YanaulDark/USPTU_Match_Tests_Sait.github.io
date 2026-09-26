@@ -1,50 +1,74 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Мастерская вопросов</title>
-<link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мастерская вопросов — LectureHub</title>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+
 <header class="topbar">
   <div class="brand">LectureHub</div>
   <nav>
     <a href="/teacher">Лекции</a>
     <a href="/workshop" class="active">Мастерская</a>
   </nav>
+  <div class="user" id="userName"></div>
 </header>
 
 <main class="workshop">
-  <h1>Творческая мастерская</h1>
-  <p class="hint">Создавайте вопросы к слайдам ваших презентаций</p>
 
-  <div class="card">
-    <label>Лекция</label>
-    <select id="lectureSelect"></select>
-
-    <label>Номер слайда</label>
-    <input type="number" id="slideNum" min="1" value="1">
-
-    <label>Текст вопроса</label>
-    <textarea id="qText" rows="3"></textarea>
-
-    <label>Варианты ответа</label>
-    <input class="opt" placeholder="Вариант A">
-    <input class="opt" placeholder="Вариант B">
-    <input class="opt" placeholder="Вариант C">
-    <input class="opt" placeholder="Вариант D">
-
-    <label>Правильный вариант</label>
-    <select id="correct">
-      <option value="0">A</option><option value="1">B</option>
-      <option value="2">C</option><option value="3">D</option>
-    </select>
-
-    <button class="btn primary" id="addQ">Добавить вопрос</button>
+  <div class="workshop-head">
+    <h1>Творческая мастерская</h1>
+    <p class="hint">Создавайте вопросы к слайдам ваших презентаций</p>
   </div>
 
-  <h2>Список вопросов</h2>
-  <div id="qList" class="list"></div>
+  <div class="card">
+    <div class="field">
+      <label for="lectureSelect">Лекция</label>
+      <select id="lectureSelect">
+        <option value="">Загрузка…</option>
+      </select>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="slideNum">Номер слайда</label>
+        <input type="number" id="slideNum" min="1" value="1">
+      </div>
+      <div class="field">
+        <label for="correct">Правильный вариант</label>
+        <select id="correct">
+          <option value="0">A</option>
+          <option value="1">B</option>
+          <option value="2">C</option>
+          <option value="3">D</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="qText">Текст вопроса</label>
+      <textarea id="qText" rows="3" placeholder="Например: Какой алгоритм используется для…"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Варианты ответа</label>
+      <input class="opt" placeholder="Вариант A">
+      <input class="opt" placeholder="Вариант B">
+      <input class="opt" placeholder="Вариант C">
+      <input class="opt" placeholder="Вариант D">
+    </div>
+
+    <button class="btn primary full" id="addQ">Добавить вопрос</button>
+  </div>
+
+  <section class="q-section">
+    <h2>Список вопросов</h2>
+    <div id="qList" class="list"></div>
+  </section>
+
 </main>
 
 <script src="/static/js/workshop.js"></script>

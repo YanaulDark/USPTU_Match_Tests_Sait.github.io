@@ -10,29 +10,49 @@ import (
 )
 
 func main() {
-	store := storage.New()
+	// ─── ключ шифрования пользовательских данных ───
+	key := os.Getenv("USERS_KEY")
+	if key == "" {
+		key = "dev-insecure-key-change-me"
+		log.Println("WARNING: using default USERS_KEY, set USERS_KEY env var for production")
+	}
 
+	// ─── подготовка директорий ───
+	if err := os.MkdirAll("./data", 0o700); err != nil {
+		log.Fatal(err)
+	}
 	dataDir := "./static"
-	_ = os.MkdirAll(dataDir+"/uploads", 0o755)
+	if err := os.MkdirAll(dataDir+"/uploads", 0o755); err != nil {
+		log.Fatal(err)
+	}
 
+	// ─── хранилище ───
+	store, err := storage.New("./data/users.json", key)
+	if err != nil {
+		log.Fatalf("cannot open user store: %v", err)
+	}
+
+	// ─── хендлеры ───
 	auth := &handlers.AuthHandler{Store: store}
 	lec := &handlers.LectureHandler{Store: store}
 	pdf := &handlers.PDFHandler{Store: store, DataDir: dataDir}
 	qst := &handlers.QuestionHandler{Store: store}
 
+	// ─── маршруты ───
 	mux := http.NewServeMux()
 
-	// Страницы
+	// страницы
 	mux.HandleFunc("/", page("templates/login.html"))
 	mux.HandleFunc("/teacher", page("templates/teacher.html"))
 	mux.HandleFunc("/student", page("templates/student.html"))
 	mux.HandleFunc("/workshop", page("templates/workshop.html"))
 
-	// Аутентификация
+	// аутентификация
 	mux.HandleFunc("/api/register", auth.Register)
 	mux.HandleFunc("/api/login", auth.Login)
+	mux.HandleFunc("/api/login/me", auth.Me)
 
-	// Лекции: список (GET) и загрузка PDF (POST)
+	// лекции: список (GET) и загрузка PDF (POST)
 	mux.HandleFunc("/api/lectures", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodPost:
@@ -44,7 +64,7 @@ func main() {
 		}
 	}, "teacher"))
 
-	// Одиночная лекция: GET (с вопросами) и DELETE (удаление)
+	// одиночная лекция: GET и DELETE
 	mux.HandleFunc("/api/lectures/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodDelete {
 			pdf.DeleteLecture(w, r)
@@ -53,18 +73,18 @@ func main() {
 		lec.Get(w, r)
 	}, "teacher"))
 
-	// SSE-поток — без авторизации, чтобы студент мог подписаться сразу после QR
+	// SSE-поток без авторизации
 	mux.HandleFunc("/api/lectures/stream/", lec.Stream)
 
-	// Вопросы
+	// вопросы
 	mux.HandleFunc("/api/questions", handlers.AuthMiddleware(qst.Create, "teacher"))
 	mux.HandleFunc("/api/questions/", handlers.AuthMiddleware(qst.ListByLecture, ""))
 
-	// Ответы и статистика
+	// ответы и статистика
 	mux.HandleFunc("/api/answers", handlers.AuthMiddleware(qst.SubmitAnswer, "student"))
 	mux.HandleFunc("/api/stats/", handlers.AuthMiddleware(qst.Stats, "teacher"))
 
-	// Статика и PDF
+	// статика и PDF
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	mux.HandleFunc("/uploads/", pdf.ServePDF)
 
@@ -77,4 +97,3 @@ func page(path string) http.HandlerFunc {
 		http.ServeFile(w, r, path)
 	}
 }
-

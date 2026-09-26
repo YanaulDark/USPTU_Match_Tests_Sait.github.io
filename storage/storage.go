@@ -18,8 +18,77 @@ type Storage struct {
 	Lectures  map[string]*models.Lecture
 	Questions map[string][]*models.Question
 	Answers   map[string][]*models.Answer
+
+	friends       map[string]map[string]bool // ownerID → set friendID
+	subscriptions map[string]map[string]bool // studentID → set teacherID
 }
 
+// ─── Друзья ───
+
+func (s *Storage) AddFriend(ownerID, friendID string) error {
+	if ownerID == friendID {
+		return errors.New("cannot add yourself")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.friends[ownerID] == nil {
+		s.friends[ownerID] = make(map[string]bool)
+	}
+	s.friends[ownerID][friendID] = true
+	if s.friends[friendID] == nil {
+		s.friends[friendID] = make(map[string]bool)
+	}
+	s.friends[friendID][ownerID] = true // взаимная дружба
+	return nil
+}
+
+func (s *Storage) ListFriends(ownerID string) []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]string, 0)
+	for id := range s.friends[ownerID] {
+		out = append(out, id)
+	}
+	return out
+}
+
+func (s *Storage) RemoveFriend(ownerID, friendID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.friends[ownerID], friendID)
+	delete(s.friends[friendID], ownerID)
+}
+
+// ─── Подписки на преподавателей ───
+
+func (s *Storage) Subscribe(studentID, teacherID string) error {
+	if studentID == teacherID {
+		return errors.New("cannot subscribe to yourself")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.subscriptions[studentID] == nil {
+		s.subscriptions[studentID] = make(map[string]bool)
+	}
+	s.subscriptions[studentID][teacherID] = true
+	return nil
+}
+
+func (s *Storage) Unsubscribe(studentID, teacherID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.subscriptions[studentID], teacherID)
+}
+
+func (s *Storage) ListSubscriptions(studentID string) []string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]string, 0)
+	for id := range s.subscriptions[studentID] {
+		out = append(out, id)
+	}
+	return out
+}
 // New создаёт Storage и открывает файл пользователей.
 // usersPath — путь к users.json, keyHex — ключ шифрования email.
 func New(usersPath, keyHex string) (*Storage, error) {
@@ -32,6 +101,9 @@ func New(usersPath, keyHex string) (*Storage, error) {
 		Lectures:  make(map[string]*models.Lecture),
 		Questions: make(map[string][]*models.Question),
 		Answers:   make(map[string][]*models.Answer),
+
+		friends:       make(map[string]map[string]bool),
+		subscriptions: make(map[string]map[string]bool),
 	}, nil
 }
 

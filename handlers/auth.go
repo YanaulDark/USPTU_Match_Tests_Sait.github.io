@@ -208,6 +208,21 @@ func issueToken(w http.ResponseWriter, u *models.User) {
 	})
 }
 
+// ParseClaims разбирает JWT и возвращает claims. Если токен невалиден — ошибка.
+func ParseClaims(token string) (jwt.MapClaims, error) {
+	tok, err := jwt.Parse(token, func(t *jwt.Token) (any, error) {
+		return jwtKey, nil
+	})
+	if err != nil || !tok.Valid {
+		return nil, err
+	}
+	claims, ok := tok.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, err
+	}
+	return claims, nil
+}
+
 // writeJSON — общий хелпер, используется во всех хендлерах.
 func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")

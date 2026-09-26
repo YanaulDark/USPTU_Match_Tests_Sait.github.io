@@ -1,23 +1,72 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Студенческая панель</title>
-<link rel="stylesheet" href="/static/css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет студента — LectureHub</title>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+
 <header class="topbar">
   <div class="brand">LectureHub</div>
+  <nav>
+    <a href="/student" class="active">Лекции</a>
+    <a href="/student?tab=friends">Друзья</a>
+    <a href="/student?tab=teachers">Преподаватели</a>
+  </nav>
   <div class="user" id="userName"></div>
 </header>
 
-<main class="student-layout">
-  <section class="question-zone">
-    <h2 id="lectureName">Лекция</h2>
-    <p class="hint">Ждите вопросов от преподавателя</p>
-    <div id="questions"></div>
+<main class="student-app">
+
+  <!-- Левая колонка: списки -->
+  <aside class="student-side">
+
+    <div class="side-block">
+      <div class="side-head">
+        <h3>Друзья</h3>
+        <button class="btn small" id="addFriendBtn">+</button>
+      </div>
+      <ul class="side-list" id="friendsList">
+        <li class="hint">Пока никого</li>
+      </ul>
+    </div>
+
+    <div class="side-block">
+      <div class="side-head">
+        <h3>Преподаватели</h3>
+        <button class="btn small" id="addTeacherBtn">+</button>
+      </div>
+      <ul class="side-list" id="teachersList">
+        <li class="hint">Пока никого</li>
+      </ul>
+    </div>
+
+  </aside>
+
+  <!-- Основная область -->
+  <section class="student-content" id="studentContent">
+    <div class="empty-state">
+      <h2>Выберите преподавателя</h2>
+      <p class="hint">Слева выберите преподавателя, чтобы увидеть его лекции</p>
+    </div>
   </section>
+
 </main>
+
+<!-- Модалка добавления -->
+<div class="modal hidden" id="addModal">
+  <div class="modal-box">
+    <h3 id="modalTitle">Добавить</h3>
+    <input type="email" id="modalEmail" placeholder="Email пользователя">
+    <div class="modal-actions">
+      <button class="btn" id="modalCancel">Отмена</button>
+      <button class="btn primary" id="modalOk">Добавить</button>
+    </div>
+    <p class="msg" id="modalMsg"></p>
+  </div>
+</div>
 
 <script src="/static/js/student.js"></script>
 </body>

@@ -2,8 +2,10 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"os"
+	"strings"
 
 	"lecture-platform/handlers"
 	"lecture-platform/storage"
@@ -37,6 +39,7 @@ func main() {
 	lec := &handlers.LectureHandler{Store: store}
 	pdf := &handlers.PDFHandler{Store: store, DataDir: dataDir}
 	qst := &handlers.QuestionHandler{Store: store}
+	soc := &handlers.SocialHandler{Store: store}
 
 	// ─── маршруты ───
 	mux := http.NewServeMux()
@@ -64,14 +67,30 @@ func main() {
 		}
 	}, "teacher"))
 
-	// одиночная лекция: GET и DELETE
+	// одиночная лекция: GET (всем авторизованным) и DELETE (только преподавателю)
 	mux.HandleFunc("/api/lectures/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodDelete {
+		switch r.Method {
+		case http.MethodDelete:
+			// только преподаватель может удалять
+			c, err := r.Cookie("token")
+			if err != nil {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			claims, err := handlers.ParseClaims(c.Value)
+			if err != nil {
+				http.Error(w, "unauthorized", http.StatusUnauthorized)
+				return
+			}
+			if role, _ := claims["role"].(string); role != "teacher" {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
 			pdf.DeleteLecture(w, r)
-			return
+		default:
+			lec.Get(w, r)
 		}
-		lec.Get(w, r)
-	}, "teacher"))
+	}, ""))
 
 	// SSE-поток без авторизации
 	mux.HandleFunc("/api/lectures/stream/", lec.Stream)
@@ -84,11 +103,58 @@ func main() {
 	mux.HandleFunc("/api/answers", handlers.AuthMiddleware(qst.SubmitAnswer, "student"))
 	mux.HandleFunc("/api/stats/", handlers.AuthMiddleware(qst.Stats, "teacher"))
 
-	// статика и PDF
+	// ─── друзья ───
+	mux.HandleFunc("/api/friends", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			soc.ListFriends(w, r)
+		case http.MethodPost:
+			soc.AddFriend(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	}, "student"))
+
+	mux.HandleFunc("/api/friends/", handlers.AuthMiddleware(soc.RemoveFriend, "student"))
+
+	// ─── подписки на преподавателей ───
+	mux.HandleFunc("/api/subscriptions", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			soc.ListSubscriptions(w, r)
+		case http.MethodPost:
+			soc.SubscribeTeacher(w, r)
+		default:
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	}, "student"))
+
+	mux.HandleFunc("/api/subscriptions/", handlers.AuthMiddleware(soc.UnsubscribeTeacher, "student"))
+
+	// ─── лекции преподавателя (для студентов) ───
+	mux.HandleFunc("/api/teachers/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/lectures") {
+			soc.TeacherLectures(w, r)
+			return
+		}
+		http.NotFound(w, r)
+	}, ""))
+
+	// ─── статика и PDF ───
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	mux.HandleFunc("/uploads/", pdf.ServePDF)
 
-	log.Println("listening on :8080")
+	// ─── показ локальных IP при старте ───
+	ifaces, _ := net.InterfaceAddrs()
+	for _, a := range ifaces {
+		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ip4 := ipnet.IP.To4(); ip4 != nil {
+				log.Printf("Local:   http://%s:8080", ip4.String())
+			}
+		}
+	}
+	log.Println("Local:   http://localhost:8080")
+	log.Println("Listening on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))
 }
 

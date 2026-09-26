@@ -37,3 +37,17 @@ type Answer struct {
     Correct    bool      `json:"correct"`
     CreatedAt  time.Time `json:"created_at"`
 }
+// Friendship — связь между двумя студентами.
+// Храним как пару (ownerID, friendID) — ownerID добавил friendID.
+type Friendship struct {
+	OwnerID  string    `json:"owner_id"`
+	FriendID string    `json:"friend_id"`
+	Created  time.Time `json:"created_at"`
+}
+
+// Subscription — подписка студента на преподавателя.
+type Subscription struct {
+	StudentID string    `json:"student_id"`
+	TeacherID string    `json:"teacher_id"`
+	Created   time.Time `json:"created_at"`
+}

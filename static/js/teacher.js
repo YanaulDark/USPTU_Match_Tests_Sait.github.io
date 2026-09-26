@@ -7,6 +7,25 @@ let pdfDoc = null;
 let pageNum = 1;
 let questions = [];
 
+async function loadLectures() {
+  const items = await api('/api/lectures?owner_id=' + encodeURIComponent(me.id));
+  const ul = document.getElementById('lectureList');
+  if (!ul) return;
+  ul.innerHTML = '';
+
+  const list = items || [];        // ← защита от null
+  if (!list.length) {
+    ul.innerHTML = '<li style="opacity:.5;cursor:default">Пока нет лекций</li>';
+    return;
+  }
+  list.forEach(l => {
+    const li = document.createElement('li');
+    li.textContent = l.title || l.id;
+    li.onclick = () => selectLecture(l);
+    ul.appendChild(li);
+  });
+}
+
 async function api(url, opts = {}) {
   const r = await fetch(url, { credentials: 'include', ...opts });
   if (!r.ok) {

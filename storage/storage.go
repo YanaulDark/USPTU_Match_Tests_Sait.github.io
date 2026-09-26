@@ -78,7 +78,7 @@ func (s *Storage) GetLecture(id string) (*models.Lecture, error) {
 func (s *Storage) ListLecturesByOwner(ownerID string) []*models.Lecture {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    var out []*models.Lecture
+    out := make([]*models.Lecture, 0)
     for _, l := range s.Lectures {
         if l.OwnerID == ownerID {
             out = append(out, l)
@@ -96,7 +96,11 @@ func (s *Storage) AddQuestion(q *models.Question) {
 func (s *Storage) ListQuestions(lectureID string) []*models.Question {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    return s.Questions[lectureID]
+    qs := s.Questions[lectureID]
+    if qs == nil {
+        return []*models.Question{}
+    }
+    return qs
 }
 
 func (s *Storage) AddAnswer(a *models.Answer) {
@@ -108,7 +112,11 @@ func (s *Storage) AddAnswer(a *models.Answer) {
 func (s *Storage) ListAnswers(questionID string) []*models.Answer {
     s.mu.RLock()
     defer s.mu.RUnlock()
-    return s.Answers[questionID]
+    as := s.Answers[questionID]
+    if as == nil {
+        return []*models.Answer{}
+    }
+    return as
 }
 
 func (s *Storage) DeleteLecture(id string) {

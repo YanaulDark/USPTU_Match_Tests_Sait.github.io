@@ -136,28 +136,40 @@ document.getElementById('qrBtn').onclick = () => {
   document.getElementById('qrModal').classList.remove('hidden');
 };
 
-document.getElementById('newLecture').onclick = () => {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'application/pdf';
-  input.onchange = async () => {
-    const file = input.files[0];
-    if (!file) return;
-    const title = prompt('Название лекции:', file.name);
-    if (!title) return;
-    const fd = new FormData();
-    fd.append('pdf', file);
-    fd.append('title', title);
-    fd.append('owner_id', me.id);
-    try {
-      await api('/api/lectures', { method: 'POST', body: fd });
-      await loadLectures();
-    } catch (e) {
-      alert('Ошибка загрузки: ' + e.message);
-    }
-  };
-  input.click();
-};
+// Открытие диалога по клику на label
+const pdfLabel = document.querySelector('label[for="pdfInput"]');
+if (pdfLabel) {
+  pdfLabel.addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('pdfInput').click();
+  });
+}
+
+// Обработка выбранного файла
+document.getElementById('pdfInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const title = prompt('Название лекции:', file.name);
+  if (!title) {
+    e.target.value = '';
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append('pdf', file);
+  fd.append('title', title);
+  fd.append('owner_id', me.id);
+
+  try {
+    await api('/api/lectures', { method: 'POST', body: fd });
+    await loadLectures();
+  } catch (err) {
+    alert('Ошибка загрузки: ' + err.message);
+  }
+
+  e.target.value = '';
+});
 
 // ─── точка входа ───
 bootstrap();

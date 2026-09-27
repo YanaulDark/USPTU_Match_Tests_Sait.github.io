@@ -19,7 +19,8 @@
 <main class="layout">
   <aside class="sidebar">
     <h3>Мои лекции</h3>
-    <button class="btn primary full" id="newLecture">+ Новая лекция</button>
+    <label for="pdfInput" class="btn primary full" style="display:block;text-align:center;cursor:pointer;"> + Новая лекция </label>
+    <input type="file" id="pdfInput" accept="application/pdf" style="display:none;">
     <ul id="lectureList" class="list"></ul>
   </aside>
 

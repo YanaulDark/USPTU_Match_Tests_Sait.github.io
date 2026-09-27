@@ -1,0 +1,16 @@
+[
+  {
+    "id": "467592c0-4afa-4fd7-9070-11ad7a3c2f73",
+    "name": "Yanaul",
+    "email_enc": "2c2WkOYREqppuV1GGaQrpnu+NLGjiBtqoI1EzjiN+z4togA3NWwYY0wB8Gibn+PG",
+    "password_hash": "$2a$10$gfVeyAfOcf6gRsP.frNX3.B6GewkLYBTa6jOxf8kloNMcIkTjOtOm",
+    "role": "teacher"
+  },
+  {
+    "id": "82b7ddf0-3ac3-4ad6-949f-df9de2f7458a",
+    "name": "Алия",
+    "email_enc": "QJfe/eDiDuvHAotMqpdopdb5JDUBZb2Mn3VIyNFRafQiZoCthXfQoV4Ts9JE3w==",
+    "password_hash": "$2a$10$QWkPgjqTDD/mhzGj9SX.8O53MzcNkMRDzfQonouoA2QUpkcTn.QY6",
+    "role": "student"
+  }
+]

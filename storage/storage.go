@@ -2,7 +2,9 @@ package storage
 
 import (
 	"errors"
+	"sort"
 	"sync"
+	"time"
 
 	"lecture-platform/models"
 )
@@ -21,8 +23,81 @@ type Storage struct {
 
 	friends       map[string]map[string]bool // ownerID → set friendID
 	subscriptions map[string]map[string]bool // studentID → set teacherID
+	progress map[string]*models.QuizProgress // key: studentID + ":" + lectureID
+	sessions map[string]*models.SessionState // key: lectureID
+	quizQuestions map[string][]*models.QuizQuestion // key: lectureID
 }
 
+
+func (s *Storage) GetProgress(studentID, lectureID string) *models.QuizProgress {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	key := studentID + ":" + lectureID
+	if p, ok := s.progress[key]; ok {
+		return p
+	}
+	return &models.QuizProgress{
+		StudentID: studentID,
+		LectureID: lectureID,
+		Index:     0,
+	}
+}
+
+func (s *Storage) SaveProgress(p *models.QuizProgress) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	p.UpdatedAt = time.Now()
+	s.progress[p.StudentID+":"+p.LectureID] = p
+}
+
+func (s *Storage) GetSession(lectureID string) *models.SessionState {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	if st, ok := s.sessions[lectureID]; ok {
+		return st
+	}
+	return &models.SessionState{LectureID: lectureID, Active: false}
+}
+
+func (s *Storage) SaveSession(st *models.SessionState) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.sessions[st.LectureID] = st
+}
+
+// Leaderboard — топ студентов по баллам для лекции.
+func (s *Storage) Leaderboard(lectureID string) []map[string]any {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	type entry struct {
+		ID    string
+		Name  string
+		Score int
+	}
+	var entries []entry
+	for _, p := range s.progress {
+		if p.LectureID != lectureID || !p.Finished {
+			continue
+		}
+		name := "Студент"
+		if u, err := s.Users.GetUser(p.StudentID); err == nil {
+			name = u.Name
+		}
+		entries = append(entries, entry{p.StudentID, name, p.Score})
+	}
+	sort.Slice(entries, func(i, j int) bool {
+		return entries[i].Score > entries[j].Score
+	})
+	out := make([]map[string]any, 0, len(entries))
+	for _, e := range entries {
+		out = append(out, map[string]any{
+			"student_id": e.ID,
+			"name":       e.Name,
+			"score":      e.Score,
+		})
+	}
+	return out
+}
 // ─── Друзья ───
 
 func (s *Storage) AddFriend(ownerID, friendID string) error {
@@ -57,6 +132,41 @@ func (s *Storage) RemoveFriend(ownerID, friendID string) {
 	defer s.mu.Unlock()
 	delete(s.friends[ownerID], friendID)
 	delete(s.friends[friendID], ownerID)
+}
+
+func (s *Storage) AddQuizQuestion(q *models.QuizQuestion) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	list := s.quizQuestions[q.LectureID]
+	q.Order = len(list)
+	s.quizQuestions[q.LectureID] = append(list, q)
+}
+
+func (s *Storage) ListQuizQuestions(lectureID string) []*models.QuizQuestion {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	list := s.quizQuestions[lectureID]
+	if list == nil {
+		return []*models.QuizQuestion{}
+	}
+	return list
+}
+
+func (s *Storage) DeleteQuizQuestion(lectureID, questionID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	list := s.quizQuestions[lectureID]
+	out := make([]*models.QuizQuestion, 0, len(list))
+	for _, q := range list {
+		if q.ID != questionID {
+			out = append(out, q)
+		}
+	}
+	// переиндексация order
+	for i, q := range out {
+		q.Order = i
+	}
+	s.quizQuestions[lectureID] = out
 }
 
 // ─── Подписки на преподавателей ───
@@ -104,6 +214,9 @@ func New(usersPath, keyHex string) (*Storage, error) {
 
 		friends:       make(map[string]map[string]bool),
 		subscriptions: make(map[string]map[string]bool),
+		progress: make(map[string]*models.QuizProgress),
+		sessions: make(map[string]*models.SessionState),
+		quizQuestions: make(map[string][]*models.QuizQuestion),
 	}, nil
 }
 

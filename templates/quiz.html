@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Квиз — LectureHub</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/quiz.css">
+</head>
+<body class="quiz-body">
+
+<header class="quiz-topbar">
+  <div class="quiz-step" id="quizStep">Вопрос 1 / 5</div>
+  <div class="quiz-score" id="quizScore">0 баллов</div>
+</header>
+
+<main class="quiz-main">
+
+  <!-- Экран 1: вопрос -->
+  <section class="quiz-card" id="screenQuestion">
+    <h2 class="quiz-question" id="questionText">Загрузка…</h2>
+    <div class="quiz-options" id="questionOptions"></div>
+  </section>
+
+  <!-- Экран 2: результат + диаграмма -->
+  <section class="quiz-card hidden" id="screenResult">
+    <div class="quiz-verdict" id="verdict">Правильно!</div>
+    <p class="quiz-correct-answer" id="correctAnswer"></p>
+
+    <h3 class="quiz-chart-title">Как ответили остальные</h3>
+    <div class="quiz-chart" id="chart"></div>
+
+    <button class="btn primary full" id="nextBtn">Дальше →</button>
+  </section>
+
+  <!-- Экран 3: финиш + лидерборд -->
+  <section class="quiz-card hidden" id="screenFinish">
+    <h2 class="quiz-finish-title">Финиш!</h2>
+    <p class="quiz-finish-score" id="finalScore"></p>
+
+    <h3 class="quiz-chart-title">Топ учеников</h3>
+    <ol class="leaderboard" id="leaderboard"></ol>
+  </section>
+
+</main>
+
+<script src="/static/js/quiz.js"></script>
+</body>
+</html>

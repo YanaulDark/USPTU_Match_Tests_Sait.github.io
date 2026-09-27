@@ -1,36 +1,54 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>Кабинет преподавателя</title>
-<link rel="stylesheet" href="/static/css/style.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Кабинет преподавателя — LectureHub</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="/static/js/pdf.min.js"></script>
 </head>
 <body>
+
 <header class="topbar">
   <div class="brand">LectureHub</div>
   <nav>
     <a href="/teacher" class="active">Лекции</a>
     <a href="/workshop">Мастерская</a>
+    <a href="/quiz-editor">Редактор квизов</a>
   </nav>
   <div class="user" id="userName"></div>
 </header>
 
 <main class="layout">
+
   <aside class="sidebar">
     <h3>Мои лекции</h3>
-    <label for="pdfInput" class="btn primary full" style="display:block;text-align:center;cursor:pointer;"> + Новая лекция </label>
-    <input type="file" id="pdfInput" accept="application/pdf" style="display:none;">
+
+    <label for="pdfInput" class="btn primary full"
+           style="display:block;text-align:center;cursor:pointer;">
+      + Новая лекция
+    </label>
+    <input type="file" id="pdfInput" accept="application/pdf"
+           style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;">
+
     <ul id="lectureList" class="list"></ul>
   </aside>
 
   <section class="content">
+
     <div class="toolbar">
       <h2 id="lectureTitle">Выберите лекцию</h2>
+
       <div class="tools">
         <button class="btn" id="prevSlide">‹</button>
         <span id="slideCounter">0 / 0</span>
         <button class="btn" id="nextSlide">›</button>
+
+        <span class="divider"></span>
+
+        <span class="quiz-status" id="quizStatus">Квиз не запущен</span>
+        <button class="btn primary" id="startQuizBtn">▶ Запустить квиз</button>
+        <button class="btn danger hidden" id="stopQuizBtn">■ Остановить</button>
         <button class="btn accent" id="qrBtn">QR для студентов</button>
       </div>
     </div>
@@ -38,12 +56,19 @@
     <div class="pdf-viewer">
       <canvas id="pdfCanvas"></canvas>
     </div>
+
   </section>
 
   <aside class="rightbar">
     <h3>Вопросы на слайде</h3>
     <div id="questionList" class="list"></div>
+
+    <h3 style="margin-top:24px;">Live-статистика</h3>
+    <div id="liveStats" class="live-stats">
+      <p class="hint">Запустите квиз, чтобы видеть ответы</p>
+    </div>
   </aside>
+
 </main>
 
 <div id="qrModal" class="modal hidden">
@@ -51,11 +76,14 @@
     <h3>QR для подключения</h3>
     <div id="qrHolder"></div>
     <p class="hint" id="qrLink"></p>
-    <button class="btn" onclick="document.getElementById('qrModal').classList.add('hidden')">Закрыть</button>
+    <button class="btn"
+            onclick="document.getElementById('qrModal').classList.add('hidden')">
+      Закрыть
+    </button>
   </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="/static/js/qrcode.min.js"></script>
 <script src="/static/js/teacher.js"></script>
 </body>
 </html>

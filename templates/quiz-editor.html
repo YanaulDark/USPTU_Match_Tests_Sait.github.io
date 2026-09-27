@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Редактор квизов — LectureHub</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">LectureHub</div>
+  <nav>
+    <a href="/teacher">Лекции</a>
+    <a href="/workshop">Мастерская</a>
+    <a href="/quiz-editor" class="active">Редактор квизов</a>
+  </nav>
+  <div class="user" id="userName"></div>
+</header>
+
+<main class="workshop">
+
+  <div class="workshop-head">
+    <h1>Редактор квизов</h1>
+    <p class="hint">Вопросы для квиза — по порядку, без привязки к слайдам</p>
+  </div>
+
+  <div class="card">
+    <div class="field">
+      <label for="lectureSelect">Лекция</label>
+      <select id="lectureSelect">
+        <option value="">Загрузка…</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="qText">Текст вопроса</label>
+      <textarea id="qText" rows="3" placeholder="Например: Что такое HTTP?"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Варианты ответа</label>
+      <input class="opt" placeholder="Вариант A">
+      <input class="opt" placeholder="Вариант B">
+      <input class="opt" placeholder="Вариант C">
+      <input class="opt" placeholder="Вариант D">
+    </div>
+
+    <div class="field">
+      <label for="correct">Правильный вариант</label>
+      <select id="correct">
+        <option value="0">A</option>
+        <option value="1">B</option>
+        <option value="2">C</option>
+        <option value="3">D</option>
+      </select>
+    </div>
+
+    <button class="btn primary full" id="addQ">Добавить вопрос в квиз</button>
+  </div>
+
+  <section class="q-section">
+    <h2>Вопросы квиза</h2>
+    <div id="qList" class="list"></div>
+  </section>
+
+</main>
+
+<script src="/static/js/quiz-editor.js"></script>
+</body>
+</html>

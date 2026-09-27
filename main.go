@@ -47,9 +47,20 @@ func main() {
 	// страницы
 	mux.HandleFunc("/", page("templates/login.html"))
 	mux.HandleFunc("/teacher", page("templates/teacher.html"))
-	mux.HandleFunc("/student", page("templates/student.html"))
 	mux.HandleFunc("/workshop", page("templates/workshop.html"))
+	
+	qe := &handlers.QuizEditorHandler{Store: store}
 
+	mux.HandleFunc("/api/quiz-questions", handlers.AuthMiddleware(qe.CreateQuizQuestion, "teacher"))
+	mux.HandleFunc("/api/quiz-questions/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+    	if r.Method == http.MethodDelete {
+        	qe.DeleteQuizQuestion(w, r)
+        	return
+    	}
+    	qe.ListQuizQuestions(w, r)
+	}, "teacher"))
+
+mux.HandleFunc("/quiz-editor", page("templates/quiz-editor.html"))
 	// аутентификация
 	mux.HandleFunc("/api/register", auth.Register)
 	mux.HandleFunc("/api/login", auth.Login)
@@ -143,6 +154,41 @@ func main() {
 	// ─── статика и PDF ───
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	mux.HandleFunc("/uploads/", pdf.ServePDF)
+	
+	mux.HandleFunc("/student", func(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Query().Get("lecture") != "" {
+		http.ServeFile(w, r, "templates/quiz.html")
+		return
+	}
+	http.ServeFile(w, r, "templates/student.html")
+	})
+
+	quiz := &handlers.QuizHandler{Store: store}
+	
+	mux.HandleFunc("/api/quiz/", handlers.AuthMiddleware(func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+		switch {
+		case strings.HasSuffix(path, "/start") && r.Method == http.MethodPost:
+			// только преподаватель
+			c, _ := r.Cookie("token")
+			claims, _ := handlers.ParseClaims(c.Value)
+			if role, _ := claims["role"].(string); role != "teacher" {
+				http.Error(w, "forbidden", http.StatusForbidden)
+				return
+			}
+			quiz.StartQuiz(w, r)
+		case strings.HasSuffix(path, "/stop") && r.Method == http.MethodPost:
+			quiz.StopQuiz(w, r)
+		case strings.HasSuffix(path, "/progress"):
+			quiz.GetProgress(w, r)
+		case strings.HasSuffix(path, "/answer") && r.Method == http.MethodPost:
+			quiz.Submit(w, r)
+		case strings.HasSuffix(path, "/leaderboard"):
+			quiz.Leaderboard(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	}, ""))
 
 	// ─── показ локальных IP при старте ───
 	ifaces, _ := net.InterfaceAddrs()
@@ -163,3 +209,4 @@ func page(path string) http.HandlerFunc {
 		http.ServeFile(w, r, path)
 	}
 }
+

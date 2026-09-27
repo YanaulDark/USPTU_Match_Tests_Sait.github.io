@@ -2,15 +2,22 @@
   {
     "id": "467592c0-4afa-4fd7-9070-11ad7a3c2f73",
     "name": "Yanaul",
-    "email_enc": "2c2WkOYREqppuV1GGaQrpnu+NLGjiBtqoI1EzjiN+z4togA3NWwYY0wB8Gibn+PG",
+    "email_enc": "dKy2+uL6ZIh1jrMdFYOe19V+z1V2FNxJhKCO2GHwc8R/l0Av4Z/ep6z6sdWn31Oa",
     "password_hash": "$2a$10$gfVeyAfOcf6gRsP.frNX3.B6GewkLYBTa6jOxf8kloNMcIkTjOtOm",
     "role": "teacher"
   },
   {
     "id": "82b7ddf0-3ac3-4ad6-949f-df9de2f7458a",
     "name": "Алия",
-    "email_enc": "QJfe/eDiDuvHAotMqpdopdb5JDUBZb2Mn3VIyNFRafQiZoCthXfQoV4Ts9JE3w==",
+    "email_enc": "i6x1TJ8q6tWAXVnYEZFOd56mu4Eo2BZ2v+k82XmbUNJzQFezOd2thsDdAtDvow==",
     "password_hash": "$2a$10$QWkPgjqTDD/mhzGj9SX.8O53MzcNkMRDzfQonouoA2QUpkcTn.QY6",
+    "role": "student"
+  },
+  {
+    "id": "0d672bab-5a9c-4ac1-bf38-4fa14c9bbbea",
+    "name": "gars",
+    "email_enc": "gUpJW2n/3vUQWKYtomYgLobdqr0nHXq8j5SbVx00y16J5BY/q/vq6qFpCS4zkQ==",
+    "password_hash": "$2a$10$HVMs8SES7/qvCjfR1nZ9Pus077lX4A8xKfO8EbtTPlawQJoUGM9zm",
     "role": "student"
   }
 ]

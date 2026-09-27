@@ -16,25 +16,31 @@ type QuizHandler struct {
 	Store *storage.Storage
 }
 
-// StartQuiz — POST /api/quiz/<lectureID>/start
+// StartQuiz:
 func (h *QuizHandler) StartQuiz(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/api/quiz/")
-	id = strings.TrimSuffix(id, "/start")
-	st := h.Store.GetSession(id)
-	st.Active = true
-	st.StartedAt = time.Now()
-	h.Store.SaveSession(st)
-	writeJSON(w, st)
+    id := strings.TrimPrefix(r.URL.Path, "/api/quiz/")
+    id = strings.TrimSuffix(id, "/start")
+    st := h.Store.GetSession(id)
+    st.Active = true
+    st.StartedAt = time.Now()
+    if err := h.Store.SaveSession(st); err != nil {
+        http.Error(w, "cannot save session", http.StatusInternalServerError)
+        return
+    }
+    writeJSON(w, st)
 }
 
-// StopQuiz — POST /api/quiz/<lectureID>/stop
+// StopQuiz:
 func (h *QuizHandler) StopQuiz(w http.ResponseWriter, r *http.Request) {
-	id := strings.TrimPrefix(r.URL.Path, "/api/quiz/")
-	id = strings.TrimSuffix(id, "/stop")
-	st := h.Store.GetSession(id)
-	st.Active = false
-	h.Store.SaveSession(st)
-	writeJSON(w, st)
+    id := strings.TrimPrefix(r.URL.Path, "/api/quiz/")
+    id = strings.TrimSuffix(id, "/stop")
+    st := h.Store.GetSession(id)
+    st.Active = false
+    if err := h.Store.SaveSession(st); err != nil {
+        http.Error(w, "cannot save session", http.StatusInternalServerError)
+        return
+    }
+    writeJSON(w, st)
 }
 
 // GetProgress — GET /api/quiz/<lectureID>/progress
@@ -94,8 +100,8 @@ func (h *QuizHandler) Submit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	qs := h.Store.ListQuizQuestions(id)    // ← было ListQuestions
-	var q *models.QuizQuestion              // ← было *models.Question
+	qs := h.Store.ListQuizQuestions(id)
+	var q *models.QuizQuestion
 	for _, x := range qs {
 		if x.ID == body.QuestionID {
 			q = x
@@ -109,15 +115,20 @@ func (h *QuizHandler) Submit(w http.ResponseWriter, r *http.Request) {
 
 	correct := q.Correct == body.Choice
 
-	h.Store.AddAnswer(&models.Answer{
+	// ─── сохранить ответ ───
+	if err := h.Store.AddAnswer(&models.Answer{
 		ID:         uuid.NewString(),
 		QuestionID: q.ID,
 		StudentID:  me,
 		Choice:     body.Choice,
 		Correct:    correct,
 		CreatedAt:  time.Now(),
-	})
+	}); err != nil {
+		http.Error(w, "cannot save answer", http.StatusInternalServerError)
+		return
+	}
 
+	// ─── обновить прогресс ───
 	prog := h.Store.GetProgress(me, id)
 	prog.Total = len(qs)
 	if correct {
@@ -127,8 +138,12 @@ func (h *QuizHandler) Submit(w http.ResponseWriter, r *http.Request) {
 	if prog.Index >= len(qs) {
 		prog.Finished = true
 	}
-	h.Store.SaveProgress(prog)
+	if err := h.Store.SaveProgress(prog); err != nil {
+		http.Error(w, "cannot save progress", http.StatusInternalServerError)
+		return
+	}
 
+	// ─── статистика для диаграммы ───
 	stats := map[int]int{}
 	for _, a := range h.Store.ListAnswers(q.ID) {
 		stats[a.Choice]++

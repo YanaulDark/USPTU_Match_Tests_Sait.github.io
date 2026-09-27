@@ -61,7 +61,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		Role:     c.Role,
 	}
 
-	if err := h.Store.Users.CreateUser(u); err != nil {
+	if err := h.Store.CreateUser(u); err != nil {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
@@ -84,7 +84,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.Store.Users.GetUserByEmail(c.Email)
+	u, err := h.Store.GetUserByEmail(c.Email)
 	if err != nil {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return
@@ -133,7 +133,7 @@ func (h *AuthHandler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.Store.Users.GetUser(uid)
+	u, err := h.Store.GetUser(uid)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusUnauthorized)
 		return

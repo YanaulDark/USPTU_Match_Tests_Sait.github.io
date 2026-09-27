@@ -29,7 +29,7 @@ func (h *SocialHandler) AddFriend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	target, err := h.Store.Users.GetUserByEmail(body.Email)
+	target, err := h.Store.GetUserByEmail(body.Email)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
@@ -55,7 +55,7 @@ func (h *SocialHandler) ListFriends(w http.ResponseWriter, r *http.Request) {
 	ids := h.Store.ListFriends(me)
 	out := make([]map[string]any, 0, len(ids))
 	for _, id := range ids {
-		if u, err := h.Store.Users.GetUser(id); err == nil {
+		if u, err := h.Store.GetUser(id); err == nil {
 			out = append(out, map[string]any{
 				"id":   u.ID,
 				"name": u.Name,
@@ -79,7 +79,7 @@ func (h *SocialHandler) SubscribeTeacher(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	target, err := h.Store.Users.GetUserByEmail(body.Email)
+	target, err := h.Store.GetUserByEmail(body.Email)
 	if err != nil {
 		http.Error(w, "user not found", http.StatusNotFound)
 		return
@@ -105,7 +105,7 @@ func (h *SocialHandler) ListSubscriptions(w http.ResponseWriter, r *http.Request
 	ids := h.Store.ListSubscriptions(me)
 	out := make([]map[string]any, 0, len(ids))
 	for _, id := range ids {
-		if u, err := h.Store.Users.GetUser(id); err == nil {
+		if u, err := h.Store.GetUser(id); err == nil {
 			out = append(out, map[string]any{
 				"id":   u.ID,
 				"name": u.Name,

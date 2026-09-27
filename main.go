@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// ─── хранилище ───
-	store, err := storage.New("./data/users.json", key)
+	store, err := storage.New("./data/app.db", key)
 	if err != nil {
 		log.Fatalf("cannot open user store: %v", err)
 	}

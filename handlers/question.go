@@ -24,8 +24,11 @@ func (h *QuestionHandler) Create(w http.ResponseWriter, r *http.Request) {
     }
     q.ID = uuid.NewString()
     q.CreatedAt = time.Now()
-    h.Store.AddQuestion(&q)
-    writeJSON(w, q)
+    if err := h.Store.AddQuestion(&q); err != nil {
+    http.Error(w, "cannot save question", http.StatusInternalServerError)
+    return
+		}
+		writeJSON(w, q)
 }
 
 func (h *QuestionHandler) ListByLecture(w http.ResponseWriter, r *http.Request) {
@@ -49,9 +52,12 @@ func (h *QuestionHandler) SubmitAnswer(w http.ResponseWriter, r *http.Request) {
         }
     }
     a.ID = uuid.NewString()
-    a.CreatedAt = time.Now()
-    h.Store.AddAnswer(&a)
-    writeJSON(w, map[string]any{"correct": a.Correct})
+		a.CreatedAt = time.Now()
+		if err := h.Store.AddAnswer(&a); err != nil {
+    		http.Error(w, "cannot save answer", http.StatusInternalServerError)
+    		return
+		}
+		writeJSON(w, map[string]any{"correct": a.Correct})
 }
 
 func (h *QuestionHandler) Stats(w http.ResponseWriter, r *http.Request) {

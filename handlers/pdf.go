@@ -103,7 +103,10 @@ func (h *PDFHandler) UploadPDF(w http.ResponseWriter, r *http.Request) {
 		lecture.Title = header.Filename
 	}
 
-	h.Store.SaveLecture(lecture)
+	if err := h.Store.SaveLecture(lecture); err != nil {
+    http.Error(w, "cannot save lecture", http.StatusInternalServerError)
+    return
+	}
 	writeJSON(w, lecture)
 }
 
@@ -158,7 +161,10 @@ func (h *PDFHandler) DeleteLecture(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "cannot delete file", http.StatusInternalServerError)
 		return
 	}
-	h.Store.DeleteLecture(id)
+	if err := h.Store.DeleteLecture(id); err != nil {
+    http.Error(w, "cannot delete lecture", http.StatusInternalServerError)
+    return
+	}
 	w.WriteHeader(http.StatusNoContent)
 }
 
